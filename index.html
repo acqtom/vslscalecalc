@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VSL Scale Calculator</title>
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  :root {
+    --blue: #1352e2; --blue-ink: #0b3fb8; --ink: #111111; --muted: #5c5c5c;
+    --cream: #fdfbf3; --white: #ffffff; --panel: #e8eeee; --line: #e6e3d8; --ink-line: #1a1a1a;
+    --ok: #16803c; --warn: #c2410c; --gold: #b7791f;
+    --font-head: "Inter Tight", "Inter", system-ui, sans-serif; --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --radius: 12px; --shadow: 0 24px 48px -20px rgba(17, 17, 17, .22);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+
+  /* Top bar */
+  .topbar { background: var(--white); border-bottom: 1px solid var(--line); }
+  .topbar-in { max-width: 1320px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); font-family: var(--font-head); font-weight: 800; font-size: 21px; letter-spacing: -.02em; }
+  .brand img { width: 34px; height: 34px; object-fit: contain; }
+  .stars { color: var(--blue); font-size: 22px; letter-spacing: 1px; line-height: 1; }
+
+  /* Hero */
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 48px 16px 64px; }
+  .hero { text-align: center; margin: 0 auto; }
+  .badge { display: inline-block; background: var(--blue); color: var(--white); font-family: var(--font-head); font-weight: 700; font-size: 15px; padding: 10px 16px; border-radius: 4px; }
+  .hero h1 { font-family: var(--font-head); font-weight: 800; font-size: clamp(22px, 2.2vw, 30px); line-height: 1.2; letter-spacing: -.025em; margin: 20px 0 0; text-wrap: balance; }
+  @media (min-width: 1000px) { .hero h1 { white-space: nowrap; } }
+  .hero h1 em { font-style: normal; color: var(--blue); }
+
+  /* Metrics card (styled like the VSL frame) */
+  .frame { margin: 48px auto 0; max-width: 1000px; background: var(--panel); border: 2px solid var(--ink-line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px; }
+  .frame h2, .sec-h { font-family: var(--font-head); font-weight: 800; font-size: 26px; letter-spacing: -.02em; margin: 0; }
+  .vs-note { font-size: 14px; color: var(--muted); margin: 6px 0 20px; line-height: 1.5; }
+  .vs-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: 14px 16px; }
+  .vs-field { display: flex; flex-direction: column; gap: 6px; }
+  .vs-field span { font-size: 13px; font-weight: 600; color: #333; }
+  .vs-field input { font: inherit; font-size: 16px; font-variant-numeric: tabular-nums; padding: 11px 12px; border: 1.5px solid var(--ink-line); border-radius: 8px; background: var(--white); color: var(--ink); width: 100%; }
+  .vs-field input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 22%, transparent); }
+  .vs-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 16px; margin-top: 24px; }
+  .vs-kpi { background: var(--blue); color: var(--white); border-radius: 8px; padding: 16px 18px; }
+  .vs-kpi span { display: block; font-size: 13px; font-weight: 500; opacity: .85; }
+  .vs-kpi b { display: block; margin-top: 4px; font-family: var(--font-head); font-weight: 800; font-size: 34px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+
+
+  /* Levels */
+  .levels-head { margin: 72px 0 0; text-align: center; }
+  .levels-head .sec-h { font-size: clamp(26px, 3.4vw, 38px); }
+  .vs-legend { margin: 14px 0 28px; font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; }
+  .vs-legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .vs-legend span::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+  .vs-levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 20px; align-items: start; }
+  .vs-lvl { background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 22px; min-width: 0; opacity: .7; transition: opacity .2s; }
+  .vs-lvl:hover { opacity: 1; }
+  .vs-lvl.cur { opacity: 1; border: 2px solid var(--ink-line); box-shadow: 6px 6px 0 var(--blue); }
+  .vs-lvl.next { opacity: 1; border: 2px solid var(--ink-line); box-shadow: 6px 6px 0 var(--gold); }
+  .vs-lvl-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .vs-lvl h2 { font-family: var(--font-head); font-weight: 800; font-size: 22px; letter-spacing: -.02em; margin: 0; }
+  .vs-here { display: none; font-family: var(--font-head); font-size: 12px; font-weight: 700; color: var(--white); background: var(--blue); padding: 5px 10px; border-radius: 4px; white-space: nowrap; }
+  .vs-lvl.cur .vs-here, .vs-lvl.next .vs-here { display: inline-block; }
+  .vs-lvl.next .vs-here { background: var(--gold); }
+  .vs-band { margin: 4px 0 16px; font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  .vs-tbl { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 14px; }
+  .vs-tbl th { text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 6px 8px 6px 0; border-bottom: 1.5px solid var(--ink-line); white-space: nowrap; }
+  .vs-tbl td { padding: 9px 8px 9px 0; border-bottom: 1px solid var(--line); }
+  .vs-tbl tr:last-child td { border-bottom: 0; font-weight: 600; }
+  .vs-tbl .num { text-align: right; white-space: nowrap; }
+  @media (min-width: 1000px) {
+    .vs-levels { grid-template-columns: repeat(6, 1fr); grid-auto-flow: row dense; }
+    .vs-lvl { grid-column: span 2; }
+    .vs-lvl.cur, .vs-lvl.next { grid-column: span 3; }
+    .vs-lvl.cur { order: -2; } .vs-lvl.next { order: -1; }
+    .vs-levels.no-next .vs-lvl.cur { grid-column: span 6; }
+    .vs-levels.no-next .vs-lvl:not(.cur) { grid-column: span 3; }
+  }
+  .vs-lvl:not(.cur) .y { display: none; }
+  .vs-lvl .pj, .vs-lvl .st, .vs-proj { display: none; }
+  .vs-lvl.cur .st, .vs-lvl.next .st, .vs-lvl.next .pj { display: table-cell; }
+  .vs-tbl .pj { color: var(--gold); font-weight: 600; background: color-mix(in srgb, var(--gold) 10%, transparent); padding-left: 8px; }
+  .vs-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .vs-pill:not(:empty)::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .vs-pill.on { color: var(--ok); }
+  .vs-pill.under { color: var(--warn); }
+  .vs-pill.beat { color: var(--blue); }
+
+  .vs-lvl.next .vs-proj { display: block; }
+  .vs-proj { margin-top: 16px; padding: 14px; border-radius: 8px; background: color-mix(in srgb, var(--gold) 9%, var(--white)); border: 1.5px solid color-mix(in srgb, var(--gold) 45%, transparent); }
+  .vs-proj input { border-color: var(--gold); }
+  .vs-proj-note { margin: 12px 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .vs-proj-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); gap: 8px; }
+  .vs-proj-kpis span { display: block; font-size: 12px; color: var(--muted); }
+  .vs-proj-kpis b { font-family: var(--font-head); font-weight: 800; font-size: 18px; color: var(--gold); font-variant-numeric: tabular-nums; }
+
+  .vs-verdict-line { margin: 16px 0 0; font-size: 14px; font-weight: 500; line-height: 1.45; display: none; }
+  .vs-lvl.cur .vs-verdict-line, .vs-lvl.next .vs-verdict-line { display: block; }
+  .foot-note { text-align: center; font-size: 13px; color: var(--muted); margin: 28px 0 0; }
+
+  @media (max-width: 600px) {
+    .wrap { padding-top: 32px; }
+    .stars { font-size: 16px; }
+    .brand { font-size: 18px; }
+    .frame { padding: 20px 16px; }
+  }
+</style></head><body>
+
+<header class="topbar"><div class="topbar-in">
+  <span class="brand"><img src="logo.png" alt="">Paidcoaching.com</span>
+  <span class="stars" aria-label="5 stars">★★★★★</span>
+</div></header>
+
+<script>
+// Standalone stand-in for the dashboard runtime
+window.dash = (() => {
+  const DATA = { vsl_tiers: [
+    { level: 1, name: 'Level 1', cash_min: 0,      cash_max: 50000,      cash_band: '$0–$50k cash / mo' },
+    { level: 2, name: 'Level 2', cash_min: 50000,  cash_max: 100000,     cash_band: '$50k–$100k cash / mo' },
+    { level: 3, name: 'Level 3', cash_min: 100000, cash_max: 250000,     cash_band: '$100k–$250k cash / mo' },
+    { level: 4, name: 'Level 4', cash_min: 250000, cash_max: 500000,     cash_band: '$250k–$500k cash / mo' },
+    { level: 5, name: 'Level 5', cash_min: 500000, cash_max: 1000000000, cash_band: '$500k+ cash / mo' },
+  ].map((r) => ({ ...r,
+    cpl_low: 80, cpl_high: 150, cpl_range: '$80–$150', cpc_low: 100, cpc_high: 200, cpc_range: '$100–$200',
+    show_rate: 0.65, show_bench: '65%', close_rate: 0.25, close_bench: '25%', roas_low: 4, roas_high: 7, roas_range: '4–7×',
+    basis: 'Same standard at every level' })) };
+  const DEFAULTS = { spend: 10000, cpl: 110, cpc: 160, show: 68, close: 27, aov: 5000, cc: 35000 };
+  let params = { ...DEFAULTS };
+  const fns = [];
+  const run = () => fns.forEach((f) => f());
+  return {
+    colors: ['#1352e2'],
+    data: (id) => ({ status: DATA[id] ? 'ok' : 'missing', data: DATA[id] || [] }),
+    params: () => ({ ...params }),
+    setParams: (o) => { params = { ...params, ...o }; run(); },
+    resetParams: () => { params = { ...DEFAULTS }; run(); },
+    onData: (f) => { fns.push(f); f(); },
+  };
+})();
+</script>
+
+<main class="wrap vs">
+  <section class="hero" id="header">
+    <span class="badge">VSL Scale Calculator</span>
+    <h1>Find Your Level, Check Your Numbers, And See Exactly What It Takes <em>To Scale Profitably</em></h1>
+  </section>
+
+  <section class="frame" id="our-metrics">
+    <h2>Your Metrics</h2>
+    <p class="vs-note">Type your current numbers. CPC = cost per booked call. CC = total cash collected this month. ROAS = CC ÷ ad spend. Sales = CC ÷ AOV.</p>
+    <div class="vs-inputs">
+      <label class="vs-field"><span>Monthly ad spend ($)</span><input data-p="spend" type="number" min="0" step="1000" inputmode="decimal"></label>
+      <label class="vs-field"><span>CPL ($)</span><input data-p="cpl" type="number" min="0" step="1" inputmode="decimal"></label>
+      <label class="vs-field"><span>CPC — per call ($)</span><input data-p="cpc" type="number" min="0" step="1" inputmode="decimal"></label>
+      <label class="vs-field"><span>Show rate (%)</span><input data-p="show" type="number" min="0" max="100" step="0.5" inputmode="decimal"></label>
+      <label class="vs-field"><span>Close rate (%)</span><input data-p="close" type="number" min="0" max="100" step="0.5" inputmode="decimal"></label>
+      <label class="vs-field"><span>AOV ($)</span><input data-p="aov" type="number" min="0" step="100" inputmode="decimal"></label>
+      <label class="vs-field"><span>CC — total cash collected ($)</span><input data-p="cc" type="number" min="0" step="1000" inputmode="decimal"></label>
+    </div>
+    <div class="vs-kpis">
+      <div class="vs-kpi"><span>ROAS</span><b id="k-roas">—</b></div>
+      <div class="vs-kpi"><span>Sales / mo (cash ÷ AOV)</span><b id="k-sales">—</b></div>
+      <div class="vs-kpi"><span>Cash collected / mo</span><b id="k-cash">—</b></div>
+    </div>
+  </section>
+
+  <div class="levels-head">
+    <h2 class="sec-h">Where You Are — And What The <em style="font-style:normal;color:var(--blue)">Next Level</em> Takes</h2>
+    <div class="vs-legend"><span style="color:var(--ok)">On standard</span><span style="color:var(--warn)">Below standard</span><span style="color:var(--blue)">Above standard — scale</span><span style="color:var(--gold)">Next-level projection</span></div>
+  </div>
+
+  <div class="vs-levels" id="levels"></div>
+  <p class="foot-note">Levels are monthly cash collected. Every level uses the same industry standard.</p>
+</main>
+
+<script>
+// Build the five level cards
+(() => {
+  const ROWS = [['CPL', 'cpl', 'cpl_range'], ['CPC (per call)', 'cpc', 'cpc_range'], ['Show rate', 'show', 'show_bench'], ['Close rate', 'close', 'close_bench'], ['ROAS', 'roas', 'roas_range']];
+  const card = (n) => `
+<section class="vs-lvl" id="level-${n}" data-level="${n}">
+  <div class="vs-lvl-head"><h2><span data-source="vsl_tiers" data-field="name">—</span></h2><span class="vs-here">You are here</span></div>
+  <p class="vs-band"><span data-source="vsl_tiers" data-field="cash_band">—</span></p>
+  <table class="vs-tbl"><thead><tr><th>Metric</th><th class="num pj pj-h">Boosted</th><th class="num">Industry</th><th class="num y">Yours</th><th class="st">Status</th></tr></thead><tbody>
+  ${ROWS.map(([label, k, f]) => `<tr><td>${label}</td><td class="num pj" data-pj="${k}">—</td><td class="num"><span data-source="vsl_tiers" data-field="${f}">—</span></td><td class="num y" data-y="${k}">—</td><td class="st"><span class="vs-pill" data-s="${k}"></span></td></tr>`).join('')}
+  </tbody></table>
+  <div class="vs-proj">
+    <label class="vs-field"><span>Ad spend to reach this level ($ / mo)</span><input data-boost type="number" min="0" step="5000" inputmode="decimal"></label>
+    <p class="vs-proj-note">Your metrics at this spend:</p>
+    <div class="vs-proj-kpis">
+      <div><span>Leads</span><b data-pk="leads">—</b></div>
+      <div><span>Booked calls</span><b data-pk="calls">—</b></div>
+      <div><span>Shows</span><b data-pk="shows">—</b></div>
+      <div><span>Sales</span><b data-pk="sales">—</b></div>
+      <div><span>Cash collected</span><b data-pk="cash">—</b></div>
+    </div>
+  </div>
+  <p class="vs-verdict-line"></p>
+</section>`;
+  document.getElementById('levels').innerHTML = [1, 2, 3, 4, 5].map(card).join('');
+})();
+</script>
+
+<script>
+(() => {
+  const root = document.querySelector('.vs');
+  const accent = dash.colors[0];
+  const GOLD = 'var(--gold)';
+  const $ = (id) => document.getElementById(id);
+  const money = d3.format('$,.0f');
+  const compact = (v) => (v >= 10000 ? '$' + new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(v) : money(v));
+  const pct = d3.format('.1%');
+  const x2 = (v) => (isFinite(v) ? d3.format('.2f')(v) + '×' : '—');
+
+  const DEFAULTS = { spend: 10000, cpl: 110, cpc: 160, show: 68, close: 27, aov: 5000, cc: 35000 };
+  const inputs = [...root.querySelectorAll('input[data-p]')];
+  const P = () => {
+    const p = dash.params(), o = {};
+    for (const k in DEFAULTS) { const v = Number(p[k]); o[k] = p[k] != null && p[k] !== '' && isFinite(v) ? v : DEFAULTS[k]; }
+    return o;
+  };
+  inputs.forEach((el) => {
+    el.addEventListener('input', () => { if (el.value !== '' && isFinite(Number(el.value))) dash.setParams({ [el.dataset.p]: Number(el.value) }); });
+    el.addEventListener('blur', () => { el.value = P()[el.dataset.p]; });
+  });
+  root.querySelectorAll('input[data-boost]').forEach((el) => {
+    el.addEventListener('input', () => { if (el.value !== '' && isFinite(Number(el.value)) && Number(el.value) > 0) dash.setParams({ boost: Number(el.value) }); });
+  });
+
+  const costS = (v, lo, hi) => (v < lo ? 'beat' : v <= hi ? 'on' : 'under');
+  const rateS = (v, b) => (v >= b * 1.1 ? 'beat' : v >= b ? 'on' : 'under');
+  const roasS = (v, lo, hi) => (v > hi ? 'beat' : v >= lo ? 'on' : 'under');
+  const LABEL = { beat: 'Above', on: 'On', under: 'Below' };
+  const NAMES = { cpl: 'CPL', cpc: 'CPC', show: 'show rate', close: 'close rate', roas: 'ROAS' };
+
+  dash.onData(() => {
+    const p = P();
+    inputs.forEach((el) => { if (el !== document.activeElement) el.value = p[el.dataset.p]; });
+    const show = p.show / 100, close = p.close / 100;
+    const sales = p.aov > 0 ? p.cc / p.aov : NaN, cash = p.cc, roas = p.cc / p.spend;
+    $('k-roas').textContent = x2(roas);
+    $('k-sales').textContent = isFinite(sales) ? d3.format(',.1f')(sales) : '—';
+    $('k-cash').textContent = compact(cash);
+
+    const d = dash.data('vsl_tiers');
+    if (d.status !== 'ok' || !d.data.length) return;
+    const rows = d.data.map((r) => ({ ...r, level: +r.level, cash_min: +r.cash_min, cash_max: +r.cash_max })).sort((a, b) => a.level - b.level);
+    const levelOf = (c) => rows.find((r) => c >= r.cash_min && c < r.cash_max) || (c >= rows[rows.length - 1].cash_min ? rows[rows.length - 1] : rows[0]);
+    const cur = levelOf(p.cc);
+    $('levels').classList.toggle('no-next', !rows.some((r) => r.level === cur.level + 1));
+    const ours = { cpl: p.cpl, cpc: p.cpc, show, close, roas };
+    const fmt = { cpl: money, cpc: money, show: pct, close: pct, roas: x2 };
+
+    rows.forEach((r) => {
+      const card = $('level-' + r.level);
+      if (!card) return;
+      card.querySelectorAll('[data-source="vsl_tiers"]').forEach((el) => { el.textContent = r[el.dataset.field]; });
+      const isCur = r.level === cur.level;
+      const isNext = r.level === cur.level + 1;
+      card.classList.toggle('cur', isCur);
+      card.classList.toggle('next', isNext);
+      card.querySelector('.vs-here').textContent = isCur ? 'You are here' : isNext ? 'Next level' : '';
+      let ev = { cpl: p.cpl, cpc: p.cpc, show, close, roas };
+      let cashB = 0, B = 0;
+      if (isNext) {
+        const bp = Number(dash.params().boost);
+        B = isFinite(bp) && bp > 0 ? bp : Math.ceil((r.cash_min * p.spend / p.cc) / 1000) * 1000;
+        const bi = card.querySelector('input[data-boost]');
+        if (bi !== document.activeElement) bi.value = B;
+        card.querySelector('.pj-h').textContent = 'At ' + compact(B);
+        const calls = B / p.cpc, shows = calls * show;
+        cashB = p.cc * (B / p.spend);
+        const pk = { leads: B / p.cpl, calls, shows, sales: p.aov > 0 ? cashB / p.aov : NaN, cash: cashB };
+        card.querySelectorAll('[data-pk]').forEach((el) => {
+          const v = pk[el.dataset.pk];
+          el.textContent = el.dataset.pk === 'cash' ? compact(v) : (isFinite(v) ? d3.format(v >= 100 ? ',.0f' : ',.1f')(v) : '—');
+        });
+        ev = { cpl: p.cpl, cpc: p.cpc, show, close, roas: cashB / B };
+        card.querySelectorAll('[data-pj]').forEach((el) => { el.textContent = fmt[el.dataset.pj](ev[el.dataset.pj]); });
+      }
+      const st = {
+        cpl: costS(ev.cpl, +r.cpl_low, +r.cpl_high), cpc: costS(ev.cpc, +r.cpc_low, +r.cpc_high),
+        show: rateS(ev.show, +r.show_rate), close: rateS(ev.close, +r.close_rate), roas: roasS(ev.roas, +r.roas_low, +r.roas_high),
+      };
+      card.querySelectorAll('[data-y]').forEach((el) => { el.textContent = fmt[el.dataset.y](ours[el.dataset.y]); });
+      card.querySelectorAll('[data-s]').forEach((el) => { const s = st[el.dataset.s]; el.className = 'vs-pill ' + s; el.textContent = LABEL[s]; });
+      const vl = card.querySelector('.vs-verdict-line');
+      const under = Object.keys(st).filter((k) => st[k] === 'under');
+      const next = rows.find((x) => x.level === r.level + 1);
+      if (isNext) { vl.style.color = under.length ? 'var(--warn)' : GOLD; const lands = levelOf(cashB); vl.textContent = 'At ' + compact(B) + ' spend you’d collect ' + compact(cashB) + '/mo → ' + lands.name + (under.length ? '. Below standard on ' + under.map((k) => NAMES[k]).join(', ') + '.' : '.'); }
+      else if (under.length) { vl.style.color = 'var(--warn)'; vl.textContent = 'Fix ' + under.map((k) => NAMES[k]).join(', ') + ' before scaling.'; }
+      else if (next) { vl.style.color = accent; vl.textContent = 'Metrics at or above standard — ready to scale to ' + next.name + ' (' + next.cash_band + ').'; }
+      else { vl.style.color = 'var(--ok)'; vl.textContent = 'Top level — hold and optimise.'; }
+    });
+  });
+})();
+</script>
+</body></html>
