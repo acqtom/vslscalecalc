@@ -36,18 +36,36 @@
   .hero h1 em { font-style: normal; color: var(--blue); }
 
   /* Metrics card (styled like the VSL frame) */
-  .frame { margin: 48px auto 0; max-width: 1000px; background: var(--panel); border: 2px solid var(--ink-line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px; }
+  .frame { margin: 48px auto 0; max-width: 1100px; background: var(--panel); border: 2px solid var(--ink-line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px; }
   .frame h2, .sec-h { font-family: var(--font-head); font-weight: 800; font-size: 26px; letter-spacing: -.02em; margin: 0; }
   .vs-note { font-size: 14px; color: var(--muted); margin: 6px 0 20px; line-height: 1.5; }
-  .vs-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: 14px 16px; }
   .vs-field { display: flex; flex-direction: column; gap: 6px; }
   .vs-field span { font-size: 13px; font-weight: 600; color: #333; }
-  .vs-field input { font: inherit; font-size: 16px; font-variant-numeric: tabular-nums; padding: 11px 12px; border: 1.5px solid var(--ink-line); border-radius: 8px; background: var(--white); color: var(--ink); width: 100%; }
-  .vs-field input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 22%, transparent); }
-  .vs-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 16px; margin-top: 24px; }
-  .vs-kpi { background: var(--blue); color: var(--white); border-radius: 8px; padding: 16px 18px; }
-  .vs-kpi span { display: block; font-size: 13px; font-weight: 500; opacity: .85; }
-  .vs-kpi b { display: block; margin-top: 4px; font-family: var(--font-head); font-weight: 800; font-size: 34px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .vs-field input, .mrow input { font: inherit; font-size: 16px; font-variant-numeric: tabular-nums; padding: 10px 12px; border: 1.5px solid var(--ink-line); border-radius: 8px; background: var(--white); color: var(--ink); width: 100%; }
+  .vs-field input:focus, .mrow input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 22%, transparent); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .col { background: var(--white); border: 2px solid var(--ink-line); border-radius: 10px; padding: 18px 20px 20px; display: flex; flex-direction: column; box-shadow: 5px 5px 0 var(--ink-line); min-width: 0; }
+  .col.goal { box-shadow: 5px 5px 0 var(--blue); }
+  .col-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .col-h h3 { font-family: var(--font-head); font-weight: 800; font-size: 22px; letter-spacing: -.02em; margin: 0; }
+  .col-tag { font-family: var(--font-head); font-size: 12px; font-weight: 700; color: var(--white); background: var(--ink); padding: 5px 10px; border-radius: 4px; }
+  .goal .col-tag { background: var(--blue); }
+  .mrow { display: grid; grid-template-columns: 1fr 9.5rem; align-items: center; gap: 12px; min-height: 60px; border-bottom: 1px solid var(--line); }
+  .mrow label { font-size: 15px; font-weight: 500; }
+  .mrow small { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
+  .mrow output { text-align: right; padding-right: 12px; font-family: var(--font-head); font-weight: 800; font-size: 22px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+  .mrow.calc label { font-weight: 600; }
+  .goal .mrow.calc output { color: var(--blue); }
+  .col-foot { margin-top: auto; padding-top: 16px; }
+  .funnel { margin: 0; padding: 12px 14px; border-radius: 8px; background: var(--panel); font-size: 13px; line-height: 1.55; color: var(--muted); }
+  .funnel b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .goal-box { padding: 14px; border-radius: 8px; background: var(--blue); color: var(--white); }
+  .goal-box label { display: block; font-family: var(--font-head); font-weight: 700; font-size: 15px; margin-bottom: 8px; }
+  .goal-box input { font: inherit; font-family: var(--font-head); font-weight: 800; font-size: 22px; padding: 10px 12px; border: 2px solid var(--ink-line); border-radius: 8px; width: 100%; background: var(--white); color: var(--ink); }
+  .goal-box input:focus { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, .5); }
+  .goal-box .funnel { margin-top: 10px; background: rgba(255, 255, 255, .12); color: rgba(255, 255, 255, .85); }
+  .goal-box .funnel b { color: var(--white); }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } .mrow { grid-template-columns: 1fr 7.5rem; } .col { padding: 16px; } }
 
 
   /* Levels */
@@ -133,7 +151,8 @@ window.dash = (() => {
     cpl_low: 80, cpl_high: 150, cpl_range: '$80–$150', cpc_low: 100, cpc_high: 200, cpc_range: '$100–$200',
     show_rate: 0.65, show_bench: '65%', close_rate: 0.25, close_bench: '25%', roas_low: 4, roas_high: 7, roas_range: '4–7×',
     basis: 'Same standard at every level' })) };
-  const DEFAULTS = { spend: 10000, cpl: 110, cpc: 160, show: 68, close: 27, aov: 5000, cc: 35000 };
+  const DEFAULTS = { spend: 10000, cpl: 110, cpc: 160, show: 68, close: 27, aov: 5000, cc: 35000,
+    gcpl: 110, gcpc: 160, gshow: 68, gclose: 27, gaov: 5000, goal: 100000 };
   let params = { ...DEFAULTS };
   const fns = [];
   const run = () => fns.forEach((f) => f());
@@ -156,20 +175,36 @@ window.dash = (() => {
 
   <section class="frame" id="our-metrics">
     <h2>Your Metrics</h2>
-    <p class="vs-note">Type your current numbers. CPC = cost per booked call. CC = total cash collected this month. ROAS = CC ÷ ad spend. Sales = CC ÷ AOV.</p>
-    <div class="vs-inputs">
-      <label class="vs-field"><span>Monthly ad spend ($)</span><input data-p="spend" type="number" min="0" step="1000" inputmode="decimal"></label>
-      <label class="vs-field"><span>CPL ($)</span><input data-p="cpl" type="number" min="0" step="1" inputmode="decimal"></label>
-      <label class="vs-field"><span>CPC — per call ($)</span><input data-p="cpc" type="number" min="0" step="1" inputmode="decimal"></label>
-      <label class="vs-field"><span>Show rate (%)</span><input data-p="show" type="number" min="0" max="100" step="0.5" inputmode="decimal"></label>
-      <label class="vs-field"><span>Close rate (%)</span><input data-p="close" type="number" min="0" max="100" step="0.5" inputmode="decimal"></label>
-      <label class="vs-field"><span>AOV ($)</span><input data-p="aov" type="number" min="0" step="100" inputmode="decimal"></label>
-      <label class="vs-field"><span>CC — total cash collected ($)</span><input data-p="cc" type="number" min="0" step="1000" inputmode="decimal"></label>
-    </div>
-    <div class="vs-kpis">
-      <div class="vs-kpi"><span>ROAS</span><b id="k-roas">—</b></div>
-      <div class="vs-kpi"><span>Sales / mo (cash ÷ AOV)</span><b id="k-sales">—</b></div>
-      <div class="vs-kpi"><span>Cash collected / mo</span><b id="k-cash">—</b></div>
+    <p class="vs-note">Left: your numbers this month. Right: the numbers you're aiming for — enter your cash goal at the bottom and see the ad spend it takes.</p>
+    <div class="cols">
+      <div class="col cur-col">
+        <div class="col-h"><h3>Current</h3><span class="col-tag">This month</span></div>
+        <div class="mrow"><label for="i-cpl">Cost per lead ($)</label><input id="i-cpl" data-p="cpl" type="number" min="0" step="1" inputmode="decimal"></div>
+        <div class="mrow"><label for="i-cpc">Cost per call ($)</label><input id="i-cpc" data-p="cpc" type="number" min="0" step="1" inputmode="decimal"></div>
+        <div class="mrow"><label for="i-show">Show rate (%)</label><input id="i-show" data-p="show" type="number" min="0" step="0.5" inputmode="decimal"></div>
+        <div class="mrow"><label for="i-close">Close rate (%)</label><input id="i-close" data-p="close" type="number" min="0" step="0.5" inputmode="decimal"></div>
+        <div class="mrow"><label for="i-aov">AOV ($)</label><input id="i-aov" data-p="aov" type="number" min="0" step="100" inputmode="decimal"></div>
+        <div class="mrow"><label for="i-cc">Cash collected ($)<small>per month</small></label><input id="i-cc" data-p="cc" type="number" min="0" step="1000" inputmode="decimal"></div>
+        <div class="mrow calc"><label>Return on ad spend<small>cash ÷ ad spend</small></label><output id="c-roas">—</output></div>
+        <div class="mrow"><label for="i-spend">Ad spend ($)<small>per month</small></label><input id="i-spend" data-p="spend" type="number" min="0" step="1000" inputmode="decimal"></div>
+        <div class="col-foot"><p class="funnel" id="c-funnel">—</p></div>
+      </div>
+      <div class="col goal">
+        <div class="col-h"><h3>Goal</h3><span class="col-tag">Target</span></div>
+        <div class="mrow"><label for="i-gcpl">Cost per lead ($)</label><input id="i-gcpl" data-p="gcpl" type="number" min="0" step="1" inputmode="decimal"></div>
+        <div class="mrow"><label for="i-gcpc">Cost per call ($)</label><input id="i-gcpc" data-p="gcpc" type="number" min="0" step="1" inputmode="decimal"></div>
+        <div class="mrow"><label for="i-gshow">Show rate (%)</label><input id="i-gshow" data-p="gshow" type="number" min="0" step="0.5" inputmode="decimal"></div>
+        <div class="mrow"><label for="i-gclose">Close rate (%)</label><input id="i-gclose" data-p="gclose" type="number" min="0" step="0.5" inputmode="decimal"></div>
+        <div class="mrow"><label for="i-gaov">AOV ($)</label><input id="i-gaov" data-p="gaov" type="number" min="0" step="100" inputmode="decimal"></div>
+        <div class="mrow calc"><label>Cash collected<small>per month — your goal</small></label><output id="g-cash">—</output></div>
+        <div class="mrow calc"><label>Return on ad spend<small>from the funnel above</small></label><output id="g-roas">—</output></div>
+        <div class="mrow calc"><label>Ad spend needed<small>per month</small></label><output id="g-spend">—</output></div>
+        <div class="col-foot"><div class="goal-box">
+          <label for="i-goal">Your goal — cash collected / mo ($)</label>
+          <input id="i-goal" data-p="goal" type="number" min="0" step="5000" inputmode="decimal">
+          <p class="funnel" id="g-funnel">—</p>
+        </div></div>
+      </div>
     </div>
   </section>
 
@@ -221,7 +256,8 @@ window.dash = (() => {
   const pct = d3.format('.1%');
   const x2 = (v) => (isFinite(v) ? d3.format('.2f')(v) + '×' : '—');
 
-  const DEFAULTS = { spend: 10000, cpl: 110, cpc: 160, show: 68, close: 27, aov: 5000, cc: 35000 };
+  const DEFAULTS = { spend: 10000, cpl: 110, cpc: 160, show: 68, close: 27, aov: 5000, cc: 35000,
+    gcpl: 110, gcpc: 160, gshow: 68, gclose: 27, gaov: 5000, goal: 100000 };
   const inputs = [...root.querySelectorAll('input[data-p]')];
   const P = () => {
     const p = dash.params(), o = {};
@@ -247,9 +283,25 @@ window.dash = (() => {
     inputs.forEach((el) => { if (el !== document.activeElement) el.value = p[el.dataset.p]; });
     const show = p.show / 100, close = p.close / 100;
     const sales = p.aov > 0 ? p.cc / p.aov : NaN, cash = p.cc, roas = p.cc / p.spend;
-    $('k-roas').textContent = x2(roas);
-    $('k-sales').textContent = isFinite(sales) ? d3.format(',.1f')(sales) : '—';
-    $('k-cash').textContent = compact(cash);
+    const n = (v) => (isFinite(v) ? d3.format(v >= 100 ? ',.0f' : ',.1f')(v) : '—');
+    const funnel = (el, pre, leads, calls, shows, sl) => {
+      el.replaceChildren(pre);
+      [[leads, ' leads'], [calls, ' calls'], [shows, ' shows'], [sl, ' sales']].forEach(([v, t], i) => {
+        if (i) el.append(' → ');
+        const e = document.createElement('b'); e.textContent = n(v); el.append(e, t);
+      });
+    };
+    $('c-roas').textContent = x2(roas);
+    const cCalls = p.spend / p.cpc;
+    funnel($('c-funnel'), 'This month: ', p.spend / p.cpl, cCalls, cCalls * show, sales);
+
+    // Goal: ROAS follows from the funnel; spend is what the cash goal needs at that ROAS
+    const gShow = p.gshow / 100, gClose = p.gclose / 100;
+    const gRoas = (gShow * gClose * p.gaov) / p.gcpc, gSpend = p.goal / gRoas, gCalls = gSpend / p.gcpc;
+    $('g-cash').textContent = compact(p.goal);
+    $('g-roas').textContent = x2(gRoas);
+    $('g-spend').textContent = isFinite(gSpend) ? compact(gSpend) : '—';
+    funnel($('g-funnel'), 'To hit it: ', gSpend / p.gcpl, gCalls, gCalls * gShow, gCalls * gShow * gClose);
 
     const d = dash.data('vsl_tiers');
     if (d.status !== 'ok' || !d.data.length) return;
