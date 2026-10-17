@@ -22,6 +22,10 @@
   .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); font-family: var(--font-head); font-weight: 800; font-size: 21px; letter-spacing: -.02em; }
   .brand img { width: 34px; height: 34px; object-fit: contain; }
   .stars { color: var(--blue); font-size: 22px; letter-spacing: 1px; line-height: 1; }
+  .top-right { display: flex; align-items: center; gap: 20px; }
+  .nav-btn { font-family: var(--font-head); font-weight: 700; font-size: 15px; color: var(--white); background: var(--blue); text-decoration: none; border: 2px solid var(--ink-line); border-radius: 6px; padding: 8px 16px; box-shadow: 3px 3px 0 var(--ink-line); white-space: nowrap; transition: transform .12s, box-shadow .12s; }
+  .nav-btn:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--ink-line); }
+  .nav-btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink-line); }
 
   /* Hero */
   .wrap { max-width: 1320px; margin: 0 auto; padding: 48px 16px 64px; }
@@ -101,15 +105,19 @@
 
   @media (max-width: 600px) {
     .wrap { padding-top: 32px; }
-    .stars { font-size: 16px; }
+    .stars { display: none; }
+    .nav-btn { font-size: 14px; padding: 7px 12px; }
     .brand { font-size: 18px; }
     .frame { padding: 20px 16px; }
   }
 </style></head><body>
 
 <header class="topbar"><div class="topbar-in">
-  <span class="brand"><img src="logo.png" alt="">Paidcoaching.com</span>
-  <span class="stars" aria-label="5 stars">★★★★★</span>
+  <a class="brand" href="index.html"><img src="logo.png" alt="">Paidcoaching.com</a>
+  <div class="top-right">
+    <span class="stars" aria-label="5 stars">★★★★★</span>
+    <a class="nav-btn" href="page2.html">Next Page →</a>
+  </div>
 </div></header>
 
 <script>
