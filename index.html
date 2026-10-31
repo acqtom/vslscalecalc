@@ -56,18 +56,6 @@
   .lvl.current .cur-btn::before { border-color: var(--white); background-color: var(--white); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f26a1b' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4L18 8'/%3E%3C/svg%3E"); }
 
   .lvl-right { padding: 18px 24px 20px; min-width: 0; }
-  .kpi-h { margin: 0 0 10px; font-family: var(--font-head); font-weight: 700; font-size: 14px; }
-  .kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-  .kpi { border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0; }
-  .kpi span { display: block; font-size: 12px; color: var(--muted); }
-  .kpi b { display: block; margin-top: 2px; font-family: var(--font-head); font-weight: 800; font-size: 20px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .rate .kpi { background: color-mix(in srgb, var(--blue) 7%, var(--white)); border-color: color-mix(in srgb, var(--blue) 30%, transparent); }
-  .rate .kpi b { color: var(--blue); }
-  .kpis.rate { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .kpi-big { padding: 16px 20px; }
-  .kpi-big span { font-size: 13px; font-weight: 600; }
-  .kpi-big b { font-size: 34px; letter-spacing: -.02em; }
-  .kpi-big small { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); }
 
   /* Checklists */
   .check { background: var(--white); border: 2px solid var(--ink-line); border-radius: 12px; box-shadow: 5px 5px 0 var(--blue); padding: 22px 24px; }
@@ -85,6 +73,7 @@
   .check-list small { display: block; margin-top: 3px; font-size: 13px; color: var(--muted); line-height: 1.45; }
   .check-list input:checked + span b { text-decoration: line-through; color: var(--muted); }
   .check-list label:has(input:checked) { background: color-mix(in srgb, var(--ok) 7%, var(--white)); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .kpi-h { margin: 0 0 10px; font-family: var(--font-head); font-weight: 700; font-size: 14px; }
   .tick-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
   .tick-head .kpi-h { margin: 0; }
   .lvl-right .check-list { margin-top: 0; }
@@ -99,15 +88,12 @@
   .step::before { content: "↓"; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: var(--white); font-weight: 700; }
   .foot-note { text-align: center; font-size: 13px; color: var(--muted); margin: 28px 0 0; }
 
-  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 760px) {
     .info-list { grid-template-columns: 1fr; }
-    .kpis.rate { grid-template-columns: 1fr; }
     .check-list { grid-template-columns: 1fr; }
     .check { padding: 18px 16px; }
     .lvl { grid-template-columns: 1fr; }
     .lvl-left { border-right: 0; border-bottom: 2px solid var(--ink-line); }
-    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-width: 600px) {
     .wrap { padding: 32px 16px 56px; }
@@ -175,14 +161,15 @@
 </section>
 <div class="step">${esc(c.step || 'Then keep climbing')}</div>`;
 
-  // Levels 1-4: tickable weekly checklist inside the card; items are [main line, detail]
-  const TICK_LEVELS = 4;
+  // Tickable weekly checklist inside every level card; items are [main line, detail]
   const weekly = (day, next) => [
     [`Full ${money(day)}/day spent all 7 days`, `No pauses, rejected ads or under-delivery \u2014 you spent ${money(day * 7)} this week.`],
     ['Closer has room for 25% more calls this week', 'You have the sales capacity for more volume.'],
-    [`ROAS above ${BOOST_ROAS}\u00d7 for the week`, `More than ${money(day * 7 * BOOST_ROAS)} cash collected on ${money(day * 7)} spend. If it is, increase spend and go to the next level.`],
+    [`ROAS above ${BOOST_ROAS}\u00d7 for the week`, `More than ${money(day * 7 * BOOST_ROAS)} cash collected on ${money(day * 7)} spend. ${next ? 'If it is, increase spend and go to the next level.' : 'If it is, hold spend here and keep optimising.'}`],
     [`Ad frequency under ${MAX_FREQ}\u00d7`, 'If frequency is climbing, your ads are about to fatigue and results will drop \u2014 have new creatives ready to launch.'],
-    ['Cash on hand covers next week\u2019s higher spend', `${money(next * 7)} at ${money(next)}/day \u2014 paid from cash already collected, not expected deals.`],
+    next
+      ? ['Cash on hand covers next week\u2019s higher spend', `${money(next * 7)} at ${money(next)}/day \u2014 paid from cash already collected, not expected deals.`]
+      : ['Cash on hand covers next week\u2019s spend', `${money(day * 7)} at ${money(day)}/day \u2014 paid from cash already collected, not expected deals.`],
   ];
 
   const html = levels.map((day, i) => {
@@ -196,17 +183,11 @@
     <span class="lvl-mo">${money(mo)} / month in ad spend</span>
     <span class="lvl-next">${isTop ? '<b>Top level</b> — hold and optimise.' : `Hit every KPI → boost to <b>${money(next)} / day</b>`}</span>
   </div>
-  <div class="lvl-right"${i < TICK_LEVELS ? ' data-check' : ''}>
-    ${i < TICK_LEVELS ? `
-    <div class="tick-head"><p class="kpi-h">KPIs to hit THIS WEEK, before boosting spend</p><span class="check-count"></span></div>
+  <div class="lvl-right" data-check>
+    <div class="tick-head"><p class="kpi-h">KPIs to hit THIS WEEK${isTop ? '' : ', before boosting spend'}</p><span class="check-count"></span></div>
     <ul class="check-list">${weekly(day, next).map(([t, d], j) => `
       <li><label><input type="checkbox" data-item="lvl${i + 1}-${j}"><span><b>${esc(t)}</b><small>${esc(d)}</small></span></label></li>`).join('')}
-    </ul>` : `
-    <p class="kpi-h">KPIs to hit THIS WEEK${isTop ? '' : ', before boosting spend'}</p>
-    <div class="kpis rate">
-      <div class="kpi kpi-big"><span>ROAS for the week</span><b>Above ${BOOST_ROAS}×</b><small>= more than ${money(day * 7 * BOOST_ROAS)} cash collected that week on ${money(day * 7)} spend</small></div>
-      <div class="kpi kpi-big"><span>Ad frequency</span><b>Under ${MAX_FREQ}×</b><small>If frequency is creeping up, have new creatives ready to launch.</small></div>
-    </div>`}
+    </ul>
   </div>
 </section>`;
     return isTop ? card : card + `<div class="step">KPIs hit → +${next === CAP ? Math.round((next / day - 1) * 100) : 25}% spend</div>`;
