@@ -95,8 +95,6 @@
   .info-list li::before { content: counter(info); grid-row: span 2; width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: var(--white); display: grid; place-items: center; font-family: var(--font-head); font-weight: 800; font-size: 15px; }
   .info-list b { font-weight: 700; font-size: 16px; line-height: 1.4; }
   .info-list span { margin-top: 4px; font-size: 14px; color: var(--muted); line-height: 1.5; }
-  .check.placeholder { box-shadow: 5px 5px 0 var(--line); border-style: dashed; }
-  .check.placeholder .check-list li { padding: 14px; border: 1.5px dashed var(--line); border-radius: 8px; color: var(--muted); font-size: 14px; }
   .step { align-self: center; display: flex; align-items: center; gap: 10px; padding: 14px 0; font-size: 13px; font-weight: 600; color: var(--muted); }
   .step::before { content: "↓"; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: var(--white); font-weight: 700; }
   .foot-note { text-align: center; font-size: 13px; color: var(--muted); margin: 28px 0 0; }
@@ -155,7 +153,7 @@
 
   const money = (v) => '$' + Math.round(v).toLocaleString('en-US');
 
-  // Cards shown above the level they unlock: a read-only "be prepared" list, or a placeholder
+  // Read-only "be prepared" cards shown above the level they unlock
   const CHECKLISTS = {
     1: { eyebrow: 'Levels 1 to 4', title: 'Things to be prepared for when scaling from now', step: 'Then start at level 1', info: [
       ['Move from a lead event to a qualified schedule event', 'As you increase spend from level 1 to 4, you\u2019ll migrate from just a lead conversion event to a qualified schedule event. At level 1, use a lead conversion event to get leads pumping, so you know what you\u2019re aiming for.'],
@@ -166,22 +164,16 @@
       ['Increasing sales capacity', 'Expect to need to onboard more sales reps as spend boosts past this level. If a closer is past 80% calendar capacity, you need a new closer \u2014 and if setter KPIs are met, you need a new setter too.'],
       ['A higher volume of creative output', 'You\u2019re going to need more creative as you boost spend. Recreate winning ads and test new variations focused on short sales cycles, so you have cash to reinvest back into spend.'],
     ] },
-    9: { title: 'Level 9+ checklist before boosting spend' },
   };
   const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  const checklist = (lvl, c) => c.info ? `
+  const checklist = (lvl, c) => `
 <section class="check info">
   <div class="check-top"><div><span class="check-eyebrow">${esc(c.eyebrow || 'Before you boost past level ' + (lvl - 1))}</span><h2>${esc(c.title)}</h2></div></div>
   <ol class="info-list">${c.info.map(([t, d]) => `
     <li><b>${esc(t)}</b><span>${esc(d)}</span></li>`).join('')}
   </ol>
 </section>
-<div class="step">${esc(c.step || 'Then keep climbing')}</div>` : `
-<section class="check placeholder">
-  <div class="check-top"><div><span class="check-eyebrow">Before you boost past level ${lvl - 1}</span><h2>${esc(c.title)}</h2></div><span class="check-count">Coming soon</span></div>
-  <ul class="check-list"><li>Checklist item to be added</li><li>Checklist item to be added</li><li>Checklist item to be added</li><li>Checklist item to be added</li></ul>
-</section>
-<div class="step">Then keep climbing</div>`;
+<div class="step">${esc(c.step || 'Then keep climbing')}</div>`;
 
   // Levels 1-4: tickable weekly checklist inside the card; items are [main line, detail]
   const TICK_LEVELS = 4;
