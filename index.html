@@ -90,6 +90,11 @@
   .lvl-right .check-list { margin-top: 0; }
   .lvl.ready:not(.current) { box-shadow: 5px 5px 0 var(--ok); }
   .lvl.ready .check-count { background: var(--ok); color: var(--white); }
+  .info-list { list-style: none; counter-reset: info; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+  .info-list li { counter-increment: info; display: grid; grid-template-columns: 32px 1fr; column-gap: 12px; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 8px; background: color-mix(in srgb, var(--blue) 4%, var(--white)); }
+  .info-list li::before { content: counter(info); grid-row: span 2; width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: var(--white); display: grid; place-items: center; font-family: var(--font-head); font-weight: 800; font-size: 15px; }
+  .info-list b { font-weight: 700; font-size: 16px; line-height: 1.4; }
+  .info-list span { margin-top: 4px; font-size: 14px; color: var(--muted); line-height: 1.5; }
   .check.placeholder { box-shadow: 5px 5px 0 var(--line); border-style: dashed; }
   .check.placeholder .check-list li { padding: 14px; border: 1.5px dashed var(--line); border-radius: 8px; color: var(--muted); font-size: 14px; }
   .step { align-self: center; display: flex; align-items: center; gap: 10px; padding: 14px 0; font-size: 13px; font-weight: 600; color: var(--muted); }
@@ -98,6 +103,7 @@
 
   @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 760px) {
+    .info-list { grid-template-columns: 1fr; }
     .kpis.rate { grid-template-columns: 1fr; }
     .check-list { grid-template-columns: 1fr; }
     .check { padding: 18px 16px; }
@@ -149,13 +155,23 @@
 
   const money = (v) => '$' + Math.round(v).toLocaleString('en-US');
 
-  // Placeholder checklists shown above the level they unlock
+  // Cards shown above the level they unlock: a read-only "be prepared" list, or a placeholder
   const CHECKLISTS = {
-    5: { title: 'Level 5 to 8 checklist before boosting spend' },
+    5: { title: 'Things to be prepared for scaling from now', info: [
+      ['Increasing sales capacity', 'Expect to need to onboard more sales reps as spend boosts past this level. If a closer is past 80% calendar capacity, you need a new closer \u2014 and if setter KPIs are met, you need a new setter too.'],
+      ['A higher volume of creative output', 'You\u2019re going to need more creative as you boost spend. Recreate winning ads and test new variations focused on short sales cycles, so you have cash to reinvest back into spend.'],
+    ] },
     9: { title: 'Level 9+ checklist before boosting spend' },
   };
   const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  const checklist = (lvl, c) => `
+  const checklist = (lvl, c) => c.info ? `
+<section class="check info">
+  <div class="check-top"><div><span class="check-eyebrow">Before you boost past level ${lvl - 1}</span><h2>${esc(c.title)}</h2></div></div>
+  <ol class="info-list">${c.info.map(([t, d]) => `
+    <li><b>${esc(t)}</b><span>${esc(d)}</span></li>`).join('')}
+  </ol>
+</section>
+<div class="step">Then keep climbing</div>` : `
 <section class="check placeholder">
   <div class="check-top"><div><span class="check-eyebrow">Before you boost past level ${lvl - 1}</span><h2>${esc(c.title)}</h2></div><span class="check-count">Coming soon</span></div>
   <ul class="check-list"><li>Checklist item to be added</li><li>Checklist item to be added</li><li>Checklist item to be added</li><li>Checklist item to be added</li></ul>
