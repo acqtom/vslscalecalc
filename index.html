@@ -57,7 +57,6 @@
 
   .lvl-right { padding: 18px 24px 20px; min-width: 0; }
   .kpi-h { margin: 0 0 10px; font-family: var(--font-head); font-weight: 700; font-size: 14px; }
-  .kpi-h + .kpis { margin-bottom: 16px; }
   .kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
   .kpi { border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0; }
   .kpi span { display: block; font-size: 12px; color: var(--muted); }
@@ -126,15 +125,13 @@
   </section>
 
   <div class="ladder" id="ladder"></div>
-  <p class="foot-note">Monthly figures use 30 days. Volume targets are the minimums the KPIs imply at that spend.</p>
+  <p class="foot-note">Monthly figures use 30 days.</p>
 </main>
 
 <script>
 (() => {
   // The KPI that must be hit before boosting spend by 25% (same at every level)
   const BOOST_ROAS = 5, MAX_FREQ = 2.5;
-  // Benchmarks used only for the minimum-volume row
-  const KPI = { cpl: 150, cpc: 200, show: 0.65, close: 0.25, roas: BOOST_ROAS };
   const START = 100, STEP = 1.25, CAP = 3000, DAYS = 30;
 
   // $100/day growing 25% per level, rounded to the nearest $5, capped at $3,000
@@ -146,8 +143,6 @@
   }
 
   const money = (v) => '$' + Math.round(v).toLocaleString('en-US');
-  const count = (v) => Math.ceil(v).toLocaleString('en-US');
-  const kpi = (label, value) => `<div class="kpi"><span>${label}</span><b>${value}</b></div>`;
 
   // Checklists shown above the level they unlock; items: [main line, optional detail]
   const CHECKLISTS = {
@@ -179,7 +174,6 @@
 
   const html = levels.map((day, i) => {
     const mo = day * DAYS, next = levels[i + 1], isTop = !next;
-    const calls = mo / KPI.cpc, shows = calls * KPI.show;
     const pre = CHECKLISTS[i + 1] ? checklist(i + 1, CHECKLISTS[i + 1]) : '';
     const card = pre + `
 <section class="lvl${isTop ? ' top' : ''}" id="level-${i + 1}">
@@ -190,18 +184,10 @@
     <span class="lvl-next">${isTop ? '<b>Top level</b> — hold and optimise.' : `Hit every KPI → boost to <b>${money(next)} / day</b>`}</span>
   </div>
   <div class="lvl-right">
-    <p class="kpi-h">KPIs to hit${isTop ? '' : ' before boosting spend'}</p>
+    <p class="kpi-h">KPIs to hit THIS WEEK${isTop ? '' : ', before boosting spend'}</p>
     <div class="kpis rate">
       <div class="kpi kpi-big"><span>ROAS for the week</span><b>Above ${BOOST_ROAS}×</b><small>= more than ${money(day * 7 * BOOST_ROAS)} cash collected that week on ${money(day * 7)} spend</small></div>
       <div class="kpi kpi-big"><span>Ad frequency</span><b>Under ${MAX_FREQ}×</b><small>If frequency is creeping up, have new creatives ready to launch.</small></div>
-    </div>
-    <p class="kpi-h">Minimum volume at this spend (per month)</p>
-    <div class="kpis">
-      ${kpi('Leads', count(mo / KPI.cpl))}
-      ${kpi('Booked calls', count(calls))}
-      ${kpi('Shows', count(shows))}
-      ${kpi('Sales', count(shows * KPI.close))}
-      ${kpi('Cash collected', money(mo * KPI.roas))}
     </div>
   </div>
 </section>`;
