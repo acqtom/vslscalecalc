@@ -64,6 +64,11 @@
   .kpi b { display: block; margin-top: 2px; font-family: var(--font-head); font-weight: 800; font-size: 20px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .rate .kpi { background: color-mix(in srgb, var(--blue) 7%, var(--white)); border-color: color-mix(in srgb, var(--blue) 30%, transparent); }
   .rate .kpi b { color: var(--blue); }
+  .kpis.rate { grid-template-columns: 1fr; }
+  .kpi-big { padding: 16px 20px; }
+  .kpi-big span { font-size: 13px; font-weight: 600; }
+  .kpi-big b { font-size: 34px; letter-spacing: -.02em; }
+  .kpi-big small { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); }
 
   /* Checklists */
   .check { background: var(--white); border: 2px solid var(--ink-line); border-radius: 12px; box-shadow: 5px 5px 0 var(--blue); padding: 22px 24px; }
@@ -125,8 +130,10 @@
 
 <script>
 (() => {
-  // KPIs that must be hit before boosting spend by 25% (same standard at every level)
-  const KPI = { cpl: 150, cpc: 200, show: 0.65, close: 0.25, roas: 4 };
+  // The KPI that must be hit before boosting spend by 25% (same at every level)
+  const BOOST_ROAS = 5;
+  // Benchmarks used only for the minimum-volume row
+  const KPI = { cpl: 150, cpc: 200, show: 0.65, close: 0.25, roas: BOOST_ROAS };
   const START = 100, STEP = 1.25, CAP = 3000, DAYS = 30;
 
   // $100/day growing 25% per level, rounded to the nearest $5, capped at $3,000
@@ -184,11 +191,7 @@
   <div class="lvl-right">
     <p class="kpi-h">KPIs to hit${isTop ? '' : ' before boosting spend'}</p>
     <div class="kpis rate">
-      ${kpi('Cost per lead', '≤ ' + money(KPI.cpl))}
-      ${kpi('Cost per call', '≤ ' + money(KPI.cpc))}
-      ${kpi('Show rate', '≥ ' + KPI.show * 100 + '%')}
-      ${kpi('Close rate', '≥ ' + KPI.close * 100 + '%')}
-      ${kpi('ROAS', '≥ ' + KPI.roas + '×')}
+      <div class="kpi kpi-big"><span>ROAS for the week</span><b>Above ${BOOST_ROAS}×</b><small>= more than ${money(day * 7 * BOOST_ROAS)} cash collected that week on ${money(day * 7)} spend</small></div>
     </div>
     <p class="kpi-h">Minimum volume at this spend (per month)</p>
     <div class="kpis">
