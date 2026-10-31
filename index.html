@@ -56,12 +56,32 @@
   .rate .kpi { background: color-mix(in srgb, var(--blue) 7%, var(--white)); border-color: color-mix(in srgb, var(--blue) 30%, transparent); }
   .rate .kpi b { color: var(--blue); }
 
+  /* Checklists */
+  .check { background: var(--white); border: 2px solid var(--ink-line); border-radius: 12px; box-shadow: 5px 5px 0 var(--blue); padding: 22px 24px; }
+  .check.done { box-shadow: 5px 5px 0 var(--ok); }
+  .check-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .check-eyebrow { display: block; font-family: var(--font-head); font-weight: 700; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--blue); }
+  .check h2 { font-family: var(--font-head); font-weight: 800; font-size: 26px; letter-spacing: -.02em; margin: 4px 0 0; }
+  .check-count { font-family: var(--font-head); font-weight: 700; font-size: 14px; padding: 6px 12px; border-radius: 999px; background: var(--panel); white-space: nowrap; }
+  .check.done .check-count { background: var(--ok); color: var(--white); }
+  .check-list { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }
+  .check-list label { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 8px; cursor: pointer; height: 100%; transition: background .15s, border-color .15s; }
+  .check-list label:hover { border-color: var(--blue); }
+  .check-list input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--ok); cursor: pointer; }
+  .check-list b { display: block; font-weight: 600; font-size: 15px; line-height: 1.4; }
+  .check-list small { display: block; margin-top: 3px; font-size: 13px; color: var(--muted); line-height: 1.45; }
+  .check-list input:checked + span b { text-decoration: line-through; color: var(--muted); }
+  .check-list label:has(input:checked) { background: color-mix(in srgb, var(--ok) 7%, var(--white)); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .check.placeholder { box-shadow: 5px 5px 0 var(--line); border-style: dashed; }
+  .check.placeholder .check-list li { padding: 14px; border: 1.5px dashed var(--line); border-radius: 8px; color: var(--muted); font-size: 14px; }
   .step { align-self: center; display: flex; align-items: center; gap: 10px; padding: 14px 0; font-size: 13px; font-weight: 600; color: var(--muted); }
   .step::before { content: "↓"; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: var(--white); font-weight: 700; }
   .foot-note { text-align: center; font-size: 13px; color: var(--muted); margin: 28px 0 0; }
 
   @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 760px) {
+    .check-list { grid-template-columns: 1fr; }
+    .check { padding: 18px 16px; }
     .lvl { grid-template-columns: 1fr; }
     .lvl-left { border-right: 0; border-bottom: 2px solid var(--ink-line); }
     .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -112,10 +132,39 @@
   const count = (v) => Math.ceil(v).toLocaleString('en-US');
   const kpi = (label, value) => `<div class="kpi"><span>${label}</span><b>${value}</b></div>`;
 
+  // Checklists shown above the level they unlock; items: [main line, optional detail]
+  const CHECKLISTS = {
+    1: { title: 'Level 1 to 4 checklist before boosting spend', items: [
+      ['1 closer and 1 setter in place', 'At this spend you\u2019re probably booking around 2\u20135 calls a day, so 1 setter and 1 closer is all you need.'],
+      ['ROAS above 5\u00d7 for the week', 'If it is, increase spend 25%.'],
+      ['Full budget spent all 7 days', 'No pauses, rejected ads or under-delivery.'],
+      ['Ads aren\u2019t worn out', 'Frequency is under 2\u00d7, and at least 1 new creative is ready to launch.'],
+      ['Closer has room for 25% more calls next week', ''],
+      ['Cash on hand covers next week\u2019s higher spend', 'Paid from cash already collected, not expected deals.'],
+    ] },
+    5: { title: 'Level 5 to 8 checklist before boosting spend', placeholder: true },
+    9: { title: 'Level 9+ checklist before boosting spend', placeholder: true },
+  };
+  const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const checklist = (lvl, c) => c.placeholder ? `
+<section class="check placeholder">
+  <div class="check-top"><div><span class="check-eyebrow">Before you boost past level ${lvl - 1}</span><h2>${esc(c.title)}</h2></div><span class="check-count">Coming soon</span></div>
+  <ul class="check-list"><li>Checklist item to be added</li><li>Checklist item to be added</li><li>Checklist item to be added</li><li>Checklist item to be added</li></ul>
+</section>
+<div class="step">Then keep climbing</div>` : `
+<section class="check" data-check="${lvl}">
+  <div class="check-top"><div><span class="check-eyebrow">Before you ever think about boosting spend</span><h2>${esc(c.title)}</h2></div><span class="check-count"></span></div>
+  <ul class="check-list">${c.items.map(([t, d], j) => `
+    <li><label><input type="checkbox" data-item="${lvl}-${j}"><span><b>${esc(t)}</b>${d ? `<small>${esc(d)}</small>` : ''}</span></label></li>`).join('')}
+  </ul>
+</section>
+<div class="step">Checklist done → start at level ${lvl}</div>`;
+
   const html = levels.map((day, i) => {
     const mo = day * DAYS, next = levels[i + 1], isTop = !next;
     const calls = mo / KPI.cpc, shows = calls * KPI.show;
-    const card = `
+    const pre = CHECKLISTS[i + 1] ? checklist(i + 1, CHECKLISTS[i + 1]) : '';
+    const card = pre + `
 <section class="lvl${isTop ? ' top' : ''}" id="level-${i + 1}">
   <div class="lvl-left">
     <span class="lvl-no">Level ${i + 1} of ${levels.length}</span>
@@ -145,6 +194,27 @@
     return isTop ? card : card + `<div class="step">KPIs hit → +${next === CAP ? Math.round((next / day - 1) * 100) : 25}% spend</div>`;
   }).join('');
   document.getElementById('ladder').innerHTML = html;
+
+  // Ticks are remembered in this browser
+  const KEY = 'vsl-boost-checklist';
+  let ticks = {};
+  try { ticks = JSON.parse(localStorage.getItem(KEY)) || {}; } catch {}
+  const update = (box) => {
+    const all = box.querySelectorAll('input[type=checkbox]'), done = [...all].filter((x) => x.checked).length;
+    box.querySelector('.check-count').textContent = done === all.length ? 'Ready to boost ✓' : done + ' / ' + all.length + ' done';
+    box.classList.toggle('done', done === all.length);
+  };
+  document.querySelectorAll('.check[data-check]').forEach((box) => {
+    box.querySelectorAll('input[type=checkbox]').forEach((cb) => {
+      cb.checked = !!ticks[cb.dataset.item];
+      cb.addEventListener('change', () => {
+        ticks[cb.dataset.item] = cb.checked;
+        try { localStorage.setItem(KEY, JSON.stringify(ticks)); } catch {}
+        update(box);
+      });
+    });
+    update(box);
+  });
 })();
 </script>
 </body></html>
