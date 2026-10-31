@@ -85,6 +85,11 @@
   .check-list small { display: block; margin-top: 3px; font-size: 13px; color: var(--muted); line-height: 1.45; }
   .check-list input:checked + span b { text-decoration: line-through; color: var(--muted); }
   .check-list label:has(input:checked) { background: color-mix(in srgb, var(--ok) 7%, var(--white)); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .tick-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .tick-head .kpi-h { margin: 0; }
+  .lvl-right .check-list { margin-top: 0; }
+  .lvl.ready:not(.current) { box-shadow: 5px 5px 0 var(--ok); }
+  .lvl.ready .check-count { background: var(--ok); color: var(--white); }
   .check.placeholder { box-shadow: 5px 5px 0 var(--line); border-style: dashed; }
   .check.placeholder .check-list li { padding: 14px; border: 1.5px dashed var(--line); border-radius: 8px; color: var(--muted); font-size: 14px; }
   .step { align-self: center; display: flex; align-items: center; gap: 10px; padding: 14px 0; font-size: 13px; font-weight: 600; color: var(--muted); }
@@ -144,33 +149,28 @@
 
   const money = (v) => '$' + Math.round(v).toLocaleString('en-US');
 
-  // Checklists shown above the level they unlock; items: [main line, optional detail]
+  // Placeholder checklists shown above the level they unlock
   const CHECKLISTS = {
-    1: { title: 'Level 1 to 4 checklist before boosting spend', items: [
-      ['1 closer and 1 setter in place', 'At this spend you\u2019re probably booking around 2\u20135 calls a day, so 1 setter and 1 closer is all you need.'],
-      ['ROAS above 5\u00d7 for the week', 'If it is, increase spend 25%.'],
-      ['Full budget spent all 7 days', 'No pauses, rejected ads or under-delivery.'],
-      ['Ads aren\u2019t worn out', 'Frequency is under 2.5\u00d7, and at least 1 new creative is ready to launch.'],
-      ['Closer has room for 25% more calls next week', ''],
-      ['Cash on hand covers next week\u2019s higher spend', 'Paid from cash already collected, not expected deals.'],
-    ] },
-    5: { title: 'Level 5 to 8 checklist before boosting spend', placeholder: true },
-    9: { title: 'Level 9+ checklist before boosting spend', placeholder: true },
+    5: { title: 'Level 5 to 8 checklist before boosting spend' },
+    9: { title: 'Level 9+ checklist before boosting spend' },
   };
   const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  const checklist = (lvl, c) => c.placeholder ? `
+  const checklist = (lvl, c) => `
 <section class="check placeholder">
   <div class="check-top"><div><span class="check-eyebrow">Before you boost past level ${lvl - 1}</span><h2>${esc(c.title)}</h2></div><span class="check-count">Coming soon</span></div>
   <ul class="check-list"><li>Checklist item to be added</li><li>Checklist item to be added</li><li>Checklist item to be added</li><li>Checklist item to be added</li></ul>
 </section>
-<div class="step">Then keep climbing</div>` : `
-<section class="check" data-check="${lvl}">
-  <div class="check-top"><div><span class="check-eyebrow">Before you ever think about boosting spend</span><h2>${esc(c.title)}</h2></div><span class="check-count"></span></div>
-  <ul class="check-list">${c.items.map(([t, d], j) => `
-    <li><label><input type="checkbox" data-item="${lvl}-${j}"><span><b>${esc(t)}</b>${d ? `<small>${esc(d)}</small>` : ''}</span></label></li>`).join('')}
-  </ul>
-</section>
-<div class="step">Checklist done → start at level ${lvl}</div>`;
+<div class="step">Then keep climbing</div>`;
+
+  // Levels 1-4: tickable weekly checklist inside the card; items are [main line, detail]
+  const TICK_LEVELS = 4;
+  const weekly = (day, next) => [
+    [`Full ${money(day)}/day spent all 7 days`, `No pauses, rejected ads or under-delivery \u2014 you spent ${money(day * 7)} this week.`],
+    ['Closer has room for 25% more calls this week', 'You have the sales capacity for more volume.'],
+    [`ROAS above ${BOOST_ROAS}\u00d7 for the week`, `More than ${money(day * 7 * BOOST_ROAS)} cash collected on ${money(day * 7)} spend. If it is, increase spend and go to the next level.`],
+    [`Ad frequency under ${MAX_FREQ}\u00d7`, 'If frequency is climbing, your ads are about to fatigue and results will drop \u2014 have new creatives ready to launch.'],
+    ['Cash on hand covers next week\u2019s higher spend', `${money(next * 7)} at ${money(next)}/day \u2014 paid from cash already collected, not expected deals.`],
+  ];
 
   const html = levels.map((day, i) => {
     const mo = day * DAYS, next = levels[i + 1], isTop = !next;
@@ -183,12 +183,17 @@
     <span class="lvl-mo">${money(mo)} / month in ad spend</span>
     <span class="lvl-next">${isTop ? '<b>Top level</b> — hold and optimise.' : `Hit every KPI → boost to <b>${money(next)} / day</b>`}</span>
   </div>
-  <div class="lvl-right">
+  <div class="lvl-right"${i < TICK_LEVELS ? ' data-check' : ''}>
+    ${i < TICK_LEVELS ? `
+    <div class="tick-head"><p class="kpi-h">KPIs to hit THIS WEEK, before boosting spend</p><span class="check-count"></span></div>
+    <ul class="check-list">${weekly(day, next).map(([t, d], j) => `
+      <li><label><input type="checkbox" data-item="lvl${i + 1}-${j}"><span><b>${esc(t)}</b><small>${esc(d)}</small></span></label></li>`).join('')}
+    </ul>` : `
     <p class="kpi-h">KPIs to hit THIS WEEK${isTop ? '' : ', before boosting spend'}</p>
     <div class="kpis rate">
       <div class="kpi kpi-big"><span>ROAS for the week</span><b>Above ${BOOST_ROAS}×</b><small>= more than ${money(day * 7 * BOOST_ROAS)} cash collected that week on ${money(day * 7)} spend</small></div>
       <div class="kpi kpi-big"><span>Ad frequency</span><b>Under ${MAX_FREQ}×</b><small>If frequency is creeping up, have new creatives ready to launch.</small></div>
-    </div>
+    </div>`}
   </div>
 </section>`;
     return isTop ? card : card + `<div class="step">KPIs hit → +${next === CAP ? Math.round((next / day - 1) * 100) : 25}% spend</div>`;
@@ -221,9 +226,9 @@
   const update = (box) => {
     const all = box.querySelectorAll('input[type=checkbox]'), done = [...all].filter((x) => x.checked).length;
     box.querySelector('.check-count').textContent = done === all.length ? 'Ready to boost ✓' : done + ' / ' + all.length + ' done';
-    box.classList.toggle('done', done === all.length);
+    box.closest('.lvl').classList.toggle('ready', done === all.length);
   };
-  document.querySelectorAll('.check[data-check]').forEach((box) => {
+  document.querySelectorAll('[data-check]').forEach((box) => {
     box.querySelectorAll('input[type=checkbox]').forEach((cb) => {
       cb.checked = !!ticks[cb.dataset.item];
       cb.addEventListener('change', () => {
