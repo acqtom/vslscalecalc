@@ -8,7 +8,7 @@
   :root {
     --blue: #1352e2; --ink: #111111; --muted: #5c5c5c;
     --cream: #fdfbf3; --white: #ffffff; --panel: #e8eeee; --line: #e6e3d8; --ink-line: #1a1a1a;
-    --ok: #16803c; --gold: #b7791f;
+    --ok: #16803c; --gold: #b7791f; --orange: #f26a1b;
     --font-head: "Inter Tight", "Inter", system-ui, sans-serif; --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; }
@@ -45,6 +45,15 @@
   .lvl-next { margin-top: auto; padding-top: 12px; font-size: 13px; font-weight: 600; }
   .lvl-next b { color: var(--blue); }
   .top .lvl-next b { color: var(--ok); }
+  .lvl-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .cur-btn { display: inline-flex; align-items: center; gap: 8px; font: inherit; font-family: var(--font-head); font-weight: 700; font-size: 13px; color: var(--muted); background: var(--white); border: 1.5px solid var(--ink-line); border-radius: 999px; padding: 4px 12px 4px 4px; cursor: pointer; white-space: nowrap; transition: background .15s, color .15s, border-color .15s; }
+  .cur-btn::before { content: ""; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--ink-line); background: var(--white) center / 14px no-repeat; }
+  .cur-btn:hover { border-color: var(--orange); color: var(--ink); }
+  .lvl.current { border-color: var(--orange); box-shadow: 5px 5px 0 var(--orange); }
+  .lvl.current .lvl-left { background: color-mix(in srgb, var(--orange) 12%, var(--white)); border-right-color: var(--orange); }
+  .lvl.current .lvl-no { color: var(--orange); }
+  .lvl.current .cur-btn { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  .lvl.current .cur-btn::before { border-color: var(--white); background-color: var(--white); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f26a1b' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4L18 8'/%3E%3C/svg%3E"); }
 
   .lvl-right { padding: 18px 24px 20px; min-width: 0; }
   .kpi-h { margin: 0 0 10px; font-family: var(--font-head); font-weight: 700; font-size: 14px; }
@@ -167,7 +176,7 @@
     const card = pre + `
 <section class="lvl${isTop ? ' top' : ''}" id="level-${i + 1}">
   <div class="lvl-left">
-    <span class="lvl-no">Level ${i + 1} of ${levels.length}</span>
+    <div class="lvl-head"><span class="lvl-no">Level ${i + 1} of ${levels.length}</span><button class="cur-btn" type="button" data-level="${i + 1}" aria-pressed="false">Set as current</button></div>
     <span class="lvl-day">${money(day)}<small> / day</small></span>
     <span class="lvl-mo">${money(mo)} / month in ad spend</span>
     <span class="lvl-next">${isTop ? '<b>Top level</b> — hold and optimise.' : `Hit every KPI → boost to <b>${money(next)} / day</b>`}</span>
@@ -194,6 +203,25 @@
     return isTop ? card : card + `<div class="step">KPIs hit → +${next === CAP ? Math.round((next / day - 1) * 100) : 25}% spend</div>`;
   }).join('');
   document.getElementById('ladder').innerHTML = html;
+
+  // Current level: one at a time, remembered in this browser; click again to clear
+  const CUR_KEY = 'vsl-current-level';
+  let current = null;
+  try { current = localStorage.getItem(CUR_KEY); } catch {}
+  const paintCurrent = () => {
+    document.querySelectorAll('.cur-btn').forEach((b) => {
+      const on = b.dataset.level === current;
+      b.closest('.lvl').classList.toggle('current', on);
+      b.setAttribute('aria-pressed', on);
+      b.textContent = on ? 'Current level' : 'Set as current';
+    });
+  };
+  document.querySelectorAll('.cur-btn').forEach((b) => b.addEventListener('click', () => {
+    current = current === b.dataset.level ? null : b.dataset.level;
+    try { current ? localStorage.setItem(CUR_KEY, current) : localStorage.removeItem(CUR_KEY); } catch {}
+    paintCurrent();
+  }));
+  paintCurrent();
 
   // Ticks are remembered in this browser
   const KEY = 'vsl-boost-checklist';
